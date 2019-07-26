@@ -19,14 +19,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.setWindowTitle('Plot BI')
         self.window.show()
 
-        self.setup_slots()
+        self._setup_slots()
 
         # attributes
         self._data = None
 
-    def setup_slots(self):
+    def _setup_slots(self):
         self.window.actionOpen.triggered.connect(self.load_csv_file)
         self.window.actionQuit.triggered.connect(self.exit_application)
+        self.window.cb_heads.currentTextChanged.connect(self.on_heads_changed)
 
     @Slot()
     def exit_application(self):
@@ -36,9 +37,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def load_csv_file(self):
         file_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Open CSV file', '', 'CSV (*.csv);;All file (*)')
         if file_path:
-            self._data = pd.read_csv(file_path[0], sep=';', encoding='latin1')
+            self._data = pd.read_csv(file_path[0], sep=';')
             heads = [i for i in self._data.head(0)]
             self._popupate_fields(heads)
+
+    @Slot(str)
+    def on_heads_changed(self, text):
+        series = self._data[text]
+        value_list = [str(value) for value in series.values]
+        self.window.lw_values.clear()
+        self.window.lw_values.addItems(value_list)
 
     def _popupate_fields(self, heads):
         self.window.cb_heads.addItems(heads)
