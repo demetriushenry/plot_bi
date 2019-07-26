@@ -1,41 +1,29 @@
 import sys
 
-from PySide2.QtWidgets import (QApplication, QFormLayout, QMainWindow,
-                               QPushButton, QSpinBox, QVBoxLayout, QWidget)
+from PySide2 import QtWidgets
+from PySide2.QtCore import QFile
+from PySide2.QtUiTools import QUiLoader
 
 
-class MainWindow(QMainWindow):
+class MainWindow(QtWidgets.QMainWindow):
 
-    def __init__(self, parent=None):
-        super(MainWindow, self).__init__(parent)
+    def __init__(self):
+        super(MainWindow, self).__init__()
         self.setup_ui()
 
     def setup_ui(self):
-        self.setWindowTitle('Plot BI')
+        ui_file = QFile("layouts/mainwindow.ui")
+        ui_file.open(QFile.ReadOnly)
 
-        # main widget
-        main_widget = QWidget(self)
-        self.setCentralWidget(main_widget)
-
-        # layout initialize
-        g_layout = QVBoxLayout()
-        layout = QFormLayout()
-        main_widget.setLayout(g_layout)
-
-        # Add Widgets
-        self.parm = QSpinBox()
-        self.parm.setValue(30)
-        layout.addRow('Parameter', self.parm)
-        self.exec_btn = QPushButton('Execute')
-
-        # global layout setting
-        g_layout.addLayout(layout)
-        g_layout.addWidget(self.exec_btn)
+        loader = QUiLoader()
+        window = loader.load(ui_file)
+        ui_file.close()
+        window.showFullScreen()
 
 
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     main = MainWindow()
-    main.show()
+    # main.show()
     sys.exit(app.exec_())
     del main
