@@ -1,5 +1,6 @@
 import sys
 import pandas as pd
+import matplotlib.pyplot as plt
 
 from PySide2 import QtWidgets
 from PySide2.QtCore import QFile, Qt, Slot
@@ -38,7 +39,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def load_csv_file(self):
         file_path = QtWidgets.QFileDialog.getOpenFileName(
             self, 'Open CSV file', '', 'CSV (*.csv);;All file (*)')
-        if file_path:
+        if file_path[0]:
             self._data = pd.read_csv(file_path[0], sep=';')
             heads = [i for i in self._data.head(0)]
             self._popupate_fields(heads)
@@ -49,6 +50,7 @@ class MainWindow(QtWidgets.QMainWindow):
         value_list = [str(value) for value in series.values]
         self.window.lw_values.clear()
         self.window.lw_values.addItems(value_list)
+        self.window.bt_plot.setEnabled(len(value_list) > 0)
 
     @Slot()
     def on_plot_graphs_click(self):
@@ -59,20 +61,46 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _get_item_from_dialog(self):
         heads = [i for i in self._data.head(0)]
-        value1, ok1 = QtWidgets.QInputDialog().getItem(
+        head1, ok1 = QtWidgets.QInputDialog().getItem(
             self, 'First graph', 'Select the first graph.', heads, 0,
             False
         )
-        value2, ok2 = QtWidgets.QInputDialog().getItem(
+        head2, ok2 = QtWidgets.QInputDialog().getItem(
             self, 'Second graph', 'Select the second graph.', heads, 0,
             False
         )
         if ok1 and ok2:
             # generate graph
-            pass
+            self._generate_graph(head1, head2)
         else:
             # it must need to select two items
             pass
+
+    def _generate_graph(self, column1, column2):
+        fig, axes = plt.subplots(1, 2)
+
+        # graph1
+        graph1 = self._data.groupby(column1)
+        graph1[column1].describe()
+        self._data[column1].drop_duplicates()
+        chart1 = graph1[column1].aggregate(['count'])
+        df1 = pd.DataFrame(chart1.sort_values(
+            ['count'], ascending=False).head())
+
+        # graph2
+        graph2 = self._data.groupby(column2)
+        graph2[column2].describe()
+        self._data[column2].drop_duplicates()
+        chart2 = graph2[column2].aggregate(['count'])
+        df2 = pd.DataFrame(chart2.sort_values(
+            ['count'], ascending=False).head())
+
+        ax1 = df1.plot.bar(ax=axes[0, 0], rot=0)
+        ax1.legend([column1])
+        ax2 = df2.plot.bar(ax=axes[0, 1], rot=0)
+        ax2.legend([column2])
+
+        plt.show()
 
 
 if __name__ == "__main__":
