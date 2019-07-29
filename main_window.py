@@ -28,6 +28,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.actionOpen.triggered.connect(self.load_csv_file)
         self.window.actionQuit.triggered.connect(self.exit_application)
         self.window.cb_heads.currentTextChanged.connect(self.on_heads_changed)
+        self.window.bt_plot.clicked.connect(self.on_plot_graphs_click)
 
     @Slot()
     def exit_application(self):
@@ -35,7 +36,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
     @Slot()
     def load_csv_file(self):
-        file_path = QtWidgets.QFileDialog.getOpenFileName(self, 'Open CSV file', '', 'CSV (*.csv);;All file (*)')
+        file_path = QtWidgets.QFileDialog.getOpenFileName(
+            self, 'Open CSV file', '', 'CSV (*.csv);;All file (*)')
         if file_path:
             self._data = pd.read_csv(file_path[0], sep=';')
             heads = [i for i in self._data.head(0)]
@@ -48,8 +50,29 @@ class MainWindow(QtWidgets.QMainWindow):
         self.window.lw_values.clear()
         self.window.lw_values.addItems(value_list)
 
+    @Slot()
+    def on_plot_graphs_click(self):
+        self._get_item_from_dialog()
+
     def _popupate_fields(self, heads):
         self.window.cb_heads.addItems(heads)
+
+    def _get_item_from_dialog(self):
+        heads = [i for i in self._data.head(0)]
+        value1, ok1 = QtWidgets.QInputDialog().getItem(
+            self, 'First graph', 'Select the first graph.', heads, 0,
+            False
+        )
+        value2, ok2 = QtWidgets.QInputDialog().getItem(
+            self, 'Second graph', 'Select the second graph.', heads, 0,
+            False
+        )
+        if ok1 and ok2:
+            # generate graph
+            pass
+        else:
+            # it must need to select two items
+            pass
 
 
 if __name__ == "__main__":
